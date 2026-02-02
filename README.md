@@ -60,9 +60,58 @@ $ git anticipate --continue
 ✨ Success! Resolution committed to feat/my-feature
 ```
 
+## HOW IT WORKS
+
+`git-anticipate` operates in-place on your working directory, similar to `git rebase`:
+
+```
+1. git anticipate <branch>
+   ├── Verify clean working tree
+   ├── Save current HEAD to .git/anticipate/
+   ├── Perform trial merge with <branch>
+   └── If conflicts → leave markers in files, exit
+
+2. User resolves conflicts manually
+   └── Edit files, then: git add <resolved-files>
+
+3. git anticipate --continue
+   ├── Capture resolved file contents
+   ├── Abort the trial merge
+   ├── Reset to original HEAD
+   ├── Write resolved contents back
+   └── Commit as "Anticipate merge with <branch>"
+```
+
+The resulting commit contains your conflict resolutions. When you later merge with `<branch>`, Git sees no conflicts—your branch already incorporates the necessary changes.
+
+## EXIT CODES
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success (no conflicts, or resolution committed) |
+| 1 | Conflicts detected (expected, resolve and continue) |
+| 2 | Error (invalid arguments, not a git repo, etc.) |
+
+## GIT-ANTICIPATE VS GIT-RERERE
+
+Both tools help with merge conflicts, but serve different purposes:
+
+| | `git rerere` | `git-anticipate` |
+|---|---|---|
+| **When** | At merge/rebase time | Anytime before merge |
+| **Approach** | Reactive—records resolutions after conflicts | Proactive—resolve while code context is fresh |
+| **Output** | Local cache (not in history) | Commit on your branch |
+| **Workflow** | Resolve once, auto-replay on same conflict | Resolve once now, actual merge is clean |
+
+**`git rerere`** is useful when rebasing repeatedly or redoing merges—it remembers how you resolved a conflict and applies it automatically next time.
+
+**`git-anticipate`** lets you resolve conflicts *now*, while you still remember why you made certain changes, rather than waiting until merge day when the code is stale in your mind. The resolution becomes a permanent commit, so the actual merge has no conflicts at all.
+
+Both tools can complement each other.
+
 ## SEE ALSO
 
-git-merge(1), git-rebase(1)
+git-merge(1), git-rebase(1), git-rerere(1)
 
 ## AUTHOR
 
