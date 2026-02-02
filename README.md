@@ -67,22 +67,23 @@ $ git anticipate --continue
 ```
 1. git anticipate <branch>
    ├── Verify clean working tree
-   ├── Save current HEAD to .git/anticipate/
    ├── Perform trial merge with <branch>
-   └── If conflicts → leave markers in files, exit
+   ├── If no conflicts → abort merge, exit success
+   └── If conflicts → save state, leave markers in files
 
 2. User resolves conflicts manually
    └── Edit files, then: git add <resolved-files>
 
 3. git anticipate --continue
    ├── Capture resolved file contents
-   ├── Abort the trial merge
-   ├── Reset to original HEAD
+   ├── Abort the trial merge, reset to original HEAD
    ├── Write resolved contents back
-   └── Commit as "Anticipate merge with <branch>"
+   └── Commit as "Preemptive conflict resolution vs <branch>"
 ```
 
 The resulting commit contains your conflict resolutions. When you later merge with `<branch>`, Git sees no conflicts—your branch already incorporates the necessary changes.
+
+If no conflicts are found, nothing is committed—your branch is already compatible.
 
 ## EXIT CODES
 

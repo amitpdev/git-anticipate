@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	version = "2.0.0"
+	version = "0.1.0"
 )
 
 // Exit codes
@@ -193,19 +193,10 @@ func startAnticipate(stateDir, targetBranch string) error {
 		return mergeErr
 
 	case MergeClean:
-		// Check if there are any changes
-		if !hasStagedOrUnstagedChanges() {
-			fmt.Printf("✨ No conflicts and no changes - branches are already compatible!\n")
-			removeState(stateDir)
-			return nil
-		}
-
-		fmt.Printf("✔ No conflicts detected!\n")
-		fmt.Printf("\nChanges from %s are staged. To apply as a preparation commit:\n", targetBranch)
-		fmt.Printf("  git anticipate --continue\n\n")
-		fmt.Printf("Or to abort:\n")
-		fmt.Printf("  git anticipate --abort\n")
-
+		// No conflicts - abort the trial merge and exit cleanly
+		abortMerge()
+		removeState(stateDir)
+		fmt.Printf("✨ No conflicts detected! Your branch is ready to merge with %s.\n", targetBranch)
 		return nil
 	}
 
@@ -548,22 +539,6 @@ func hasUncommittedChanges() bool {
 		return false
 	}
 	return len(strings.TrimSpace(string(output))) > 0
-}
-
-func hasStagedOrUnstagedChanges() bool {
-	// Check for staged changes
-	stagedCmd := exec.Command("git", "diff", "--cached", "--quiet")
-	if stagedCmd.Run() != nil {
-		return true // has staged changes
-	}
-
-	// Check for unstaged changes
-	unstagedCmd := exec.Command("git", "diff", "--quiet")
-	if unstagedCmd.Run() != nil {
-		return true // has unstaged changes
-	}
-
-	return false
 }
 
 // MergeResult represents the outcome of a merge attempt
